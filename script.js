@@ -3,29 +3,27 @@
 const newBookBtn = document.querySelector('#btn-newbook');
 const addBookBtn = document.querySelector('#btn-addbook');
 const formNewbook = document.querySelector('#form-newbook div');
-
 const modal = document.querySelector('#modal');
-
 const main = document.querySelector("#main");
+const modalTitle = document.querySelector("#modal-title");
+const modalAuthor = document.querySelector("#modal-author");
+const modalPages = document.querySelector("#modal-pages");
+const modalRead = document.querySelector("#modal-read");
 
 let myLibrary = [];
 
 class Book {
     constructor (title, author, pages, read) {
-        this.title = title;
-        this.author = author;
-        this.pages = pages;
+        this.title = title ? title : 'Unknown';
+        this.author = author ? author : 'Unknown';
+        this.pages = pages ? pages : 0;
         this.read = read;
         this.numID = myLibrary.length;
     }
 }
 
 function getBookData() {
-    const values = []
-    for (const el of formNewbook.children) {
-        values.push(el.value)
-    }
-    return new Book(...values);
+    return new Book(modalTitle.value, modalAuthor.value, modalPages.value, modalRead.checked);
 }
 
 function refreshLibrary() {
@@ -39,7 +37,10 @@ function refreshLibrary() {
             <div class="title">${book.title}</div>
             <div class="author">${book.author}</div>
             <div class="pages">${book.pages} pages</div>
-            <label>Read<input type="checkbox" ${(book.read === "on") ? "checked" : ""}></label>
+            <div class="modal-finished">
+                <label for="read-${book.numID}">Read</label>
+                <input id="read-${book.numID}" class="modal-read" type="checkbox" ${(book.read) ? "checked" : ""}>
+            </div>
             `
         main.appendChild(bookHTML);
     }
@@ -55,13 +56,17 @@ function deleteBook (index) {
 
 function addBookToLibrary(event) {
     event.preventDefault();
-    const book = getBookData();
-    myLibrary.push(book);
-    modal.classList.add("hidden");
-    refreshLibrary();
-    for (const el of formNewbook.children) {
-        el.value = ""
-        el.checked = false
+    if (modalTitle.value === "") {
+        alert("Title cannot be empty")
+    } else {
+        const book = getBookData();
+        myLibrary.push(book);
+        modal.classList.add("hidden");
+        refreshLibrary();
+        modalTitle.value = ""
+        modalAuthor.value = "" 
+        modalPages.value = ""
+        modalRead.checked = false
     }
 }
 
@@ -74,6 +79,11 @@ modal.addEventListener('click', (e) => {if (e.target.id == 'modal') {modal.class
 main.addEventListener('click', (e) => {
     if (e.target.className === "btn-del") {
         deleteBook(e.target.attributes.numID.value)
-    }
-    
+    } else if (e.target.className === "modal-read") {
+        if (myLibrary[e.target.id.replace('read-','')].read) {
+            myLibrary[e.target.id.replace('read-','')].read = false
+        } else {
+            myLibrary[e.target.id.replace('read-','')].read = true
+        }
+    }  
 })
